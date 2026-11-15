@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AreaLogada;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepositoRequest;
+use App\Http\Requests\FiltroMovimentacoesRequest;
 use App\Http\Requests\MovimentacaoRequest;
 use App\Models\MovimentacaoModel;
 use App\Models\UsuarioModel;
@@ -87,5 +88,47 @@ class Carteira extends Controller
 
         return $this->responderJSON(201, 'Movimentação realizada com sucesso');
     }
-    
+
+    /**
+     * Atende o histórico (lista paginada com filtros) e o dashboard
+     * (saldo atual, totais do mês e, com por_pagina=5, as últimas 5 movimentações).
+     */
+    public function carregarMovimentacoes(FiltroMovimentacoesRequest $request): JsonResponse
+    {
+        $filtros = $request->validated();
+
+        $pagina    = (int) ($filtros['pagina'] ?? 1);
+        $porPagina = (int) ($filtros['por_pagina'] ?? 10);
+
+        try {
+            $id = auth()->id();
+
+            $usuarioModel = new UsuarioModel();
+            $usuario = $usuarioModel->obterUsuario($id);
+
+            $movimentacaoModel = new MovimentacaoModel();
+            $movimentacoes = $movimentacaoModel->listarMovimentacoes($id, $filtros, $porPagina, $pagina);
+            $totaisMes     = $movimentacaoModel->totalizarMesAtual($id);
+
+        } catch (Exception $e) {
+            return $this->responderJSON(500, 'Infelizmente não foi possível carregar as suas movimentações. Tente novamente mais tarde.');
+        }
+
+        return $this->responderJSON(200, '', [
+            'resumo' => [
+                'saldo'                => $usuario->saldo,
+                'total_depositado_mes' => $totaisMes['total_depositado'],
+                'total_sacado_mes'     => $totaisMes['total_sacado'],
+            ],
+            'movimentacoes' => $movimentacoes->items(),
+            'paginacao' => [
+                'pagina_atual'  => $movimentacoes->currentPage(),
+                'por_pagina'    => $movimentacoes->perPage(),
+                'total'         => $movimentacoes->total(),
+                'ultima_pagina' => $movimentacoes->lastPage(),
+            ],
+        ]);
+    }
+
 }
+

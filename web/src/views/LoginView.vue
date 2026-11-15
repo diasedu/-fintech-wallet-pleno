@@ -66,7 +66,9 @@ function openRegister() {
       class="card card-body bg-body-tertiary m-3 shadow-sm border border-2"
       style="width: 100%; max-width: 400px; margin: auto"
     >
-      <h1 class="h4 text-center mb-3">Carteira Digital</h1>
+      <h1 class="h4 text-center mb-3">
+        <i class="fa-solid fa-wallet me-2" aria-hidden="true"></i>Carteira Digital
+      </h1>
 
       <div class="text-center alert alert-info">
         <small>
@@ -113,6 +115,7 @@ function openRegister() {
           class="spinner-border spinner-border-sm me-2"
           aria-hidden="true"
         ></span>
+        <i v-else class="fa-solid fa-right-to-bracket me-1" aria-hidden="true"></i>
         {{ loading ? 'Entrando...' : 'Acessar a minha carteira' }}
       </button>
 
@@ -124,7 +127,7 @@ function openRegister() {
             class="btn btn-link p-0 align-baseline"
             @click="openRegister"
           >
-            Cadastre-se
+            <i class="fa-solid fa-user-plus me-1" aria-hidden="true"></i>Cadastre-se
           </button>
         </p>
       </small>

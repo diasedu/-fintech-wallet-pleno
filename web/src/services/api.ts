@@ -18,6 +18,8 @@ export class ApiError extends Error {
 interface RequestOptions extends RequestInit {
   /** não exibe toasts (ex.: checagem de sessão feita pelo router) */
   silent?: boolean
+  /** não exibe só o toast de sucesso (ex.: consultas que apenas carregam dados); erros continuam aparecendo */
+  silentSuccess?: boolean
 }
 
 // Token de API do Sanctum: recebido no login e enviado em "Authorization: Bearer ..."
@@ -27,7 +29,7 @@ export const auth = {
   clearToken: ()              => localStorage.removeItem(TOKEN_KEY),
 }
 
-async function request<T>(path: string, { silent, ...options }: RequestOptions = {}): Promise<T> {
+async function request<T>(path: string, { silent, silentSuccess, ...options }: RequestOptions = {}): Promise<T> {
   const token = auth.getToken()
 
   const headers: Record<string, string> = {
@@ -39,7 +41,17 @@ async function request<T>(path: string, { silent, ...options }: RequestOptions =
     headers.Authorization = `Bearer ${token}`
   }
 
-  const res  = await fetch(`${BASE_URL}${path}`, { ...options, headers })
+  let res: Response
+
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { ...options, headers })
+  } catch {
+    // o fetch só rejeita quando a requisição nem chega a ter resposta (servidor fora do ar, sem rede)
+    const message = 'Não foi possível conectar ao servidor. Tente novamente.'
+    if (!silent) toast.error(message)
+    throw new ApiError(0, message)
+  }
+
   const data = res.status === 204 ? null : await res.json().catch(() => null)
 
   if (!res.ok) {
@@ -53,7 +65,7 @@ async function request<T>(path: string, { silent, ...options }: RequestOptions =
     throw new ApiError(res.status, message, data?.errors)
   }
 
-  if (!silent) toast.success(data?.message ?? 'Sua solicitação foi processada com sucesso!')
+  if (!silent && !silentSuccess) toast.success(data?.message ?? 'Sua solicitação foi processada com sucesso!')
 
   return data as T
 }

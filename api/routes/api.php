@@ -19,13 +19,18 @@ Route::get('/health', function () {
 Route::post('/autenticar'        , [Login::class, 'autenticar']);
 Route::post('/usuarios/registrar', [Login::class, 'registrar']);
 
-Route::middleware(['auth:sanctum', 'throttle:ratelimit', 'throttle:40,1'])
+Route::middleware(['auth:sanctum', 'throttle:40,1'])
     ->prefix('area-logada')
     ->group(function () {
         Route::get('/principal', [Principal::class, 'index']);
         Route::post('/logout'  , [Login::class, 'logout']);
 
+        Route::get('/carteira/movimentacoes', [Carteira::class, 'carregarMovimentacoes']);
 
-        Route::post('/carteira/depositar', [Carteira::class, 'depositar']);
-        Route::post('/carteira/sacar',     [Carteira::class, 'sacar']);
+        // Limite mais rígido (5/min) só para as operações que movimentam dinheiro:
+        // as consultas das telas ficam apenas no limite geral do grupo (40/min).
+        Route::middleware('throttle:ratelimit')->group(function () {
+            Route::post('/carteira/depositar', [Carteira::class, 'depositar']);
+            Route::post('/carteira/sacar',     [Carteira::class, 'sacar']);
+        });
     });

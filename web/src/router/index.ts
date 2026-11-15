@@ -1,13 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import PrincipalView from '../views/PrincipalView.vue'
+import DepositoView from '../views/DepositoView.vue'
+import SaqueView from '../views/SaqueView.vue'
+import HistoricoView from '../views/HistoricoView.vue'
+import AreaLogadaLayout from '../layouts/AreaLogadaLayout.vue'
 
 import { api, auth } from '../services/api'
 
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', name: 'login', component: LoginView },
-    { path: '/area-logada/principal', 'name': 'principal', component: PrincipalView, meta: { requiresAuth: true } },
+    {
+      // menu + conteúdo; o "requiresAuth" vale para todas as rotas filhas
+      path: '/area-logada',
+      component: AreaLogadaLayout,
+      redirect: '/area-logada/principal',
+      meta: { requiresAuth: true },
+      children: [
+        { path: 'principal', name: 'principal', component: PrincipalView },
+        { path: 'depositar', name: 'depositar', component: DepositoView },
+        { path: 'sacar',     name: 'sacar',     component: SaqueView },
+        { path: 'historico', name: 'historico', component: HistoricoView },
+      ],
+    },
 ]
 
 const router = createRouter({

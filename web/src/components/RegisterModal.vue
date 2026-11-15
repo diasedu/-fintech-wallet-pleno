@@ -106,7 +106,7 @@ watch(
               :disabled="loading"
               @click="emit('close')"
             >
-              Cancelar
+              <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>Cancelar
             </button>
             <button type="submit" class="btn btn-primary" :disabled="loading">
               <span
@@ -114,6 +114,7 @@ watch(
                 class="spinner-border spinner-border-sm me-1"
                 aria-hidden="true"
               ></span>
+              <i v-else class="fa-solid fa-user-plus me-1" aria-hidden="true"></i>
               {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
             </button>
           </div>
