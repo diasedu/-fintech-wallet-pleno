@@ -21,6 +21,11 @@ class UsuarioModel extends Authenticatable
         'senha',
     ];
 
+    // "saldo" fica fora do $fillable de propósito: só deve mudar por regra de negócio.
+    protected $casts = [
+        'saldo' => 'decimal:2',
+    ];
+
     public $timestamps = false;
 
     // A coluna da senha é "senha" (e não "password").
@@ -33,5 +38,10 @@ class UsuarioModel extends Authenticatable
     public function getRememberTokenName(): string
     {
         return '';
+    }
+
+    public function obterUsuario(int $usuarioId): UsuarioModel
+    {
+        return $this->find($usuarioId);
     }
 }
