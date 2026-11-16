@@ -33,7 +33,12 @@ async function onSubmit() {
   }
 }
 
-async function onRegister(payload: { name: string; email: string; password: string }) {
+async function onRegister(payload: {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+}) {
   registerLoading.value = true
   registerError.value = null
   try {

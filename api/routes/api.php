@@ -3,6 +3,7 @@
 use App\Http\Controllers\AreaLogada\Carteira;
 use App\Http\Controllers\AreaLogada\Principal;
 use App\Http\Controllers\Login;
+use App\Support\PoliticaSenha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,12 @@ Route::get('/health', function () {
 
 Route::post('/autenticar'        , [Login::class, 'autenticar']);
 Route::post('/usuarios/registrar', [Login::class, 'registrar']);
+
+// Única fonte da regra de senha forte (App\Support\PoliticaSenha), consumida pelo
+// formulário de cadastro para validar com o mesmo critério usado no backend.
+Route::get('/senha/politica', function () {
+    return response()->json(['data' => PoliticaSenha::descricaoApi()]);
+});
 
 Route::middleware(['auth:sanctum', 'throttle:40,1'])
     ->prefix('area-logada')
