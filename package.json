@@ -1,0 +1,11 @@
+{
+  "name": "fintech-wallet-pleno",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently -n api,web -c blue,green \"php api/artisan serve\" \"npm --prefix web run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
