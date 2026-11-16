@@ -1,6 +1,8 @@
 import { useToast } from '../composables/useToast'
 
-const BASE_URL  = import.meta.env.VITE_API_BASE_URL ?? '/api'
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+
+const BASE_URL = RAW_BASE_URL.replace(/\/+$/, '')
 const TOKEN_KEY = 'token'
 const toast = useToast()
 
