@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -9,6 +10,8 @@ class UsuarioModel extends Authenticatable
 {
     // Permite criar/revogar tokens de API: $usuario->createToken(), ->tokens(), ->currentAccessToken()
     use HasApiTokens;
+    // Permite UsuarioModel::factory(), usado pelo seeder e pelos testes.
+    use HasFactory;
 
     protected $table = 'usuarios';
     protected $fillable = [
