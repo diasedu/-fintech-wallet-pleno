@@ -11,3 +11,24 @@ export function formatarMoeda(valor: string | number | null | undefined): string
 export function formatarDataHora(iso: string): string {
   return dataHora.format(new Date(iso))
 }
+
+/**
+ * Máscara de moeda brasileira para inputs: a partir do texto digitado.
+ */
+export function mascararMoeda(valorDigitado: string): string {
+  const digitos = valorDigitado.replace(/\D/g, '')
+  if (!digitos) {
+    return ''
+  }
+
+  const numero = Number(digitos) / 100
+  return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** Converte o texto já mascarado (ex.: "1.234,56") para number (1234.56). */
+export function desmascararMoeda(valorMascarado: string): number {
+  if (!valorMascarado) return 0
+
+  const limpo = valorMascarado.replace(/\./g, '').replace(',', '.')
+  return Number(limpo) || 0
+}

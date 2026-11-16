@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useCarteiraStore } from '../stores/carteira'
-import { formatarMoeda } from '../utils/formato'
+import { desmascararMoeda, formatarMoeda, mascararMoeda } from '../utils/formato'
 
 // Formulário único para depósito e saque: muda o texto, a ação e,
 // no saque, a validação de saldo insuficiente antes de enviar.
@@ -13,7 +13,9 @@ const props = defineProps<{
 const carteira = useCarteiraStore()
 const { resumo, saldo } = storeToRefs(carteira)
 
-const valor    = ref<number | ''>('')
+// Texto já com a máscara brasileira (ex.: "1.234,56"); o valor numérico é derivado dele.
+const valorTexto = ref('')
+const valorNumero = computed(() => desmascararMoeda(valorTexto.value))
 const enviando = ref(false)
 
 const ehSaque = computed(() => props.tipo === 'saque')
@@ -26,29 +28,39 @@ const textos = computed(() =>
 
 // Validação no frontend: só acusa depois que o usuário digita algum valor.
 const erroValidacao = computed<string | null>(() => {
-  if (valor.value === '') return null
-
-  if (valor.value <= 0) return 'Informe um valor maior que zero.'
+  if (valorTexto.value === '') {
+    return null
+  }
+ 
+  if (valorNumero.value <= 0) { 
+    return 'Informe um valor maior que zero.'
+  }
 
   // só valida o saldo depois que ele foi carregado
-  if (ehSaque.value && resumo.value && valor.value > saldo.value) {
+  if (ehSaque.value && resumo.value && valorNumero.value > saldo.value) {
     return `Saldo insuficiente. Disponível para saque: ${formatarMoeda(saldo.value)}.`
   }
 
   return null
 })
 
-const podeEnviar = computed(() => valor.value !== '' && !erroValidacao.value && !enviando.value)
+const podeEnviar = computed(() => valorTexto.value !== '' && !erroValidacao.value && !enviando.value)
+
+function onInputValor(event: Event) {
+  valorTexto.value = mascararMoeda((event.target as HTMLInputElement).value)
+}
 
 onMounted(() => {
   // garante o saldo na tela mesmo abrindo esta página direto pela URL
-  if (!resumo.value) carteira.carregarDashboard()
+  if (!resumo.value) {
+    carteira.carregarDashboard()
+  }
 })
 
 async function onSubmit() {
-  if (!podeEnviar.value || valor.value === '') return
+  if (!podeEnviar.value || valorTexto.value === '') return
 
-  const valorEnviado = valor.value
+  const valorEnviado = valorNumero.value
 
   enviando.value = true
 
@@ -59,7 +71,7 @@ async function onSubmit() {
       await carteira.depositar(valorEnviado)
     }
 
-    valor.value = '' // sucesso: a mensagem da API já apareceu no toast
+    valorTexto.value = '' // sucesso: a mensagem da API já apareceu no toast
   } catch {
     // erro: a mensagem da API já apareceu no toast; mantém o valor para o usuário corrigir
   } finally {
@@ -93,12 +105,11 @@ async function onSubmit() {
             <span class="input-group-text">R$</span>
             <input
               id="valor"
-              v-model.number="valor"
-              type="number"
+              :value="valorTexto"
+              @input="onInputValor"
+              type="text"
               class="form-control form-control-lg"
               :class="{ 'is-invalid': erroValidacao }"
-              min="0.01"
-              step="0.01"
               inputmode="decimal"
               placeholder="0,00"
               required

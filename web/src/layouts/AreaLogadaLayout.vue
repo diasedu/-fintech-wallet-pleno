@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, auth } from '../services/api'
 import { useCarteiraStore } from '../stores/carteira'
 
+interface UsuarioLogado {
+  nome: string
+  email: string
+}
+
 const router   = useRouter()
 const carteira = useCarteiraStore()
 const saindo   = ref(false)
+const usuario  = ref<UsuarioLogado | null>(null)
+
+onMounted(async () => {
+  usuario.value = await api.get<UsuarioLogado>('/user', { silent: true })
+})
 
 async function sair() {
   saindo.value = true
@@ -53,6 +63,12 @@ async function sair() {
             </RouterLink>
           </li>
         </ul>
+
+        <span v-if="usuario" class="text-body-secondary small d-none d-md-inline" :title="usuario.email">
+          <i class="fa-solid fa-circle-user me-1" aria-hidden="true"></i>
+          <strong class="text-body">{{ usuario.nome }}</strong>
+          <span class="ms-1">({{ usuario.email }})</span>
+        </span>
 
         <button class="btn btn-outline-danger btn-sm" :disabled="saindo" @click="sair">
           <i class="fa-solid fa-right-from-bracket me-1" aria-hidden="true"></i>
