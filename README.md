@@ -16,6 +16,28 @@ web/   Frontend em Vue 3 (SPA)
 - **Histórico de movimentações** paginado, com filtro por tipo e período, exibindo o saldo acumulado após cada lançamento.
 - **Totais do mês** (depositado/sacado) exibidos na área logada.
 
+## Dependências
+
+### Backend (`api/`)
+- **PHP** `^8.4`
+- `laravel/framework` `^13.17` — o framework.
+- `laravel/sanctum` `^4.0` — autenticação via token de API (ver [Decisões técnicas](#backend)).
+- `laravel/tinker` `^3.0` — REPL do Laravel.
+- `ext-bcmath` — precisão decimal nas operações de saldo.
+- **Dev**: `phpunit/phpunit` `^12.5` (testes), `fakerphp/faker` `^1.23` (dados falsos nas factories), `mockery/mockery` `^1.6`, `laravel/pint` `^1.27` (lint), `laravel-lang/common` `^6.9` (tradução de mensagens de validação), `laravel/pail` `^1.2`, `laravel/pao` `^1.0`, `nunomaduro/collision` `^8.6`.
+
+### Frontend (`web/`)
+- **Node** `^22.18 || >=24.12`
+- `vue` `^3.5` — framework da SPA.
+- `vue-router` `^5.5` — rotas (login, área logada e suas telas).
+- `pinia` `^4.1` — estado da carteira (`stores/carteira.ts`).
+- `bootstrap` `^5.3` — layout e componentes visuais.
+- `@fortawesome/fontawesome-free` `^7.3` — ícones.
+- **Dev**: `vite` `^8.2` (build/dev server), `typescript` `~6.0` + `vue-tsc` `^3.3` (checagem de tipos), `@vitejs/plugin-vue` `^6.0`, `vite-plugin-vue-devtools` `^8.2`, `npm-run-all2` `^9.0` (usado no `npm run build`).
+
+### Raiz (`package.json`)
+- `concurrently` `^9.1` — sobe `api/` e `web/` juntos com um único `npm run dev` (ver `scripts/setup.mjs` e [Decisões técnicas](#backend)).
+
 ## Decisões técnicas
 ### Monorepo
 Facilitar a instalação para rodar localmente.
@@ -92,6 +114,32 @@ e, no backend, libere a origem do frontend em `api/.env`:
 
 ```
 CORS_ALLOWED_ORIGINS=https://<domínio-do-frontend>
+```
+
+## Testes
+
+```sh
+cd api
+php artisan test
+```
+
+`tests/Feature/MovimentacaoCarteiraTest.php` cobre os cenários críticos de depósito/saque (a parte que move dinheiro de fato):
+
+- Depósito válido atualiza o saldo.
+- Saque com saldo insuficiente é rejeitado e não altera o saldo.
+- Saque igual ao saldo total é permitido e zera o saldo (caso de borda).
+- Valor inválido (zero/negativo) é rejeitado tanto no depósito quanto no saque.
+- Saldo acumulado do histórico (`saldo_apos`, calculado via window function) reflete corretamente uma sequência de movimentações.
+- Depositar/sacar sem autenticação retorna 401.
+
+Cada teste usa `RefreshDatabase` (banco SQLite em memória, configurado em `phpunit.xml`) e `UsuarioModel::factory()` para criar o usuário de teste — nenhum depende de dados seedados.
+
+### Usuário seed
+
+`database/seeders/DatabaseSeeder.php` cria um usuário com login fixo (`demo@gmail.com` / `Demo@Senha123!`) para já existir uma conta pronta em dev/demo, sem passar pela tela de cadastro. É diferente dos usuários de teste: o seed é para uso manual (local, apresentação), os testes criam e descartam seus próprios usuários a cada execução. Para popular:
+
+```sh
+php artisan db:seed
 ```
 
 ## Deploy
