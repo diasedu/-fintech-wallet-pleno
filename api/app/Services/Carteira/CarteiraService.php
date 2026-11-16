@@ -76,6 +76,6 @@ class SaqueService extends CarteiraService
 
     public function podeExecutarMovimentacao(float $novoSaldo, ?float $valor): bool
     {
-        return $novoSaldo >= 0 && $valor > 0.01;
+        return $novoSaldo >= 0 && $valor >= 0.01;
     }
 }
