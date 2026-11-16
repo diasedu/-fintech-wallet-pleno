@@ -33,5 +33,6 @@ run('composer install', api)
 run('npm install', web)
 run('php artisan key:generate --ansi', api)
 run('php artisan migrate', api)
+run('php artisan db:seed', api) // idempotente (firstOrCreate): seguro rodar de novo a cada setup
 
 console.log('\nSetup concluído. Rode "npm run dev" para subir backend e frontend juntos.')

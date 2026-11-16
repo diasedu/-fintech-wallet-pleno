@@ -63,7 +63,6 @@ Facilitar a instalação para rodar localmente.
 
 ### Banco de dados
 - **Banco de dados configurável por ambiente**: localmente usa SQLite (zero setup, só `touch` do arquivo), em produção (deploy) usa MySQL. Como o acesso ao banco passa inteiramente pelo Eloquent/query builder (sem SQL específico de um driver, só a window function em `MovimentacaoModel`, suportada por ambos), a troca é só configuração (`DB_CONNECTION` e variáveis relacionadas em `.env`), sem mudança de código.
-- **Script único para rodar o projeto inteiro** (`package.json` + `scripts/setup.mjs` na raiz): como `api/` e `web/` são projetos independentes (Composer e npm separados), um `npm run setup` prepara os dois (instala dependências, copia `.env`, cria o SQLite, roda migrations) e um `npm run dev` sobe backend e frontend juntos via `concurrently`, evitando abrir dois terminais e lembrar os comandos de cada lado.
 
 ## Como rodar localmente
 
@@ -73,7 +72,7 @@ Pré-requisitos: PHP 8.4+, Composer, Node 22+ (ou 24+), npm.
 
 ```sh
 npm install     # instala o concurrently, usado só para rodar os dois servidores juntos
-npm run setup   # composer install (api) + npm install (web) + .env + sqlite + migrate
+npm run setup   # composer install (api) + npm install (web) + .env + sqlite + migrate + seed
 npm run dev     # sobe api (http://127.0.0.1:8000) e web (http://localhost:5173) juntos
 ```
 
@@ -90,6 +89,7 @@ cp .env.example .env
 php artisan key:generate
 touch database/database.sqlite   # a app usa SQLite por padrão (DB_CONNECTION=sqlite)
 php artisan migrate
+php artisan db:seed              # cria o usuário seed (ver seção Testes)
 php artisan serve                # http://127.0.0.1:8000
 ```
 
@@ -136,11 +136,11 @@ Cada teste usa `RefreshDatabase` (banco SQLite em memória, configurado em `phpu
 
 ### Usuário seed
 
-`database/seeders/DatabaseSeeder.php` cria um usuário com login fixo (`demo@gmail.com` / `Demo@Senha123!`) para já existir uma conta pronta em dev/demo, sem passar pela tela de cadastro. É diferente dos usuários de teste: o seed é para uso manual (local, apresentação), os testes criam e descartam seus próprios usuários a cada execução. Para popular:
+`database/seeders/DatabaseSeeder.php` cria um usuário com login fixo, para já existir uma conta pronta em dev/demo sem passar pela tela de cadastro. Já roda automaticamente no `npm run setup` e na opção manual acima (`php artisan db:seed`); é idempotente (`firstOrCreate`), então rodar de novo não duplica nem dá erro.
 
-```sh
-php artisan db:seed
-```
+**Credenciais:**
+- E-mail: `demo@gmail.com`
+- Senha: `Demo@Senha123!`
 
 ## Deploy
 
