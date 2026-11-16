@@ -9,7 +9,7 @@ import AreaLogadaLayout from '../layouts/AreaLogadaLayout.vue'
 import { api, auth } from '../services/api'
 
 const routes = [
-    { path: '/', redirect: '/login' },
+    { path: '/', redirect: '/area-logada/principal' },
     { path: '/login', name: 'login', component: LoginView },
     {
       // menu + conteúdo; o "requiresAuth" vale para todas as rotas filhas
